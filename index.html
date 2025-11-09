@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>youareaniduot</title>
+    <style>
+        /* 画面全体を覆う黒い背景 */
+        body {
+            margin: 0;
+            background-color: #000;
+            overflow: hidden; /* スクロールを禁止 */
+        }
+
+        /* 動画コンテナの基本スタイル */
+        .video-container {
+            position: absolute;
+            width: 150px; /* 初期サイズ */
+            height: auto;
+            transition: transform 0.1s ease-out; /* 動きを滑らかにする */
+        }
+
+        /* 動画要素のスタイル */
+        .video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border: 2px solid white; /* 視認性向上のための枠 */
+        }
+
+        /* 画面中央に配置するローディング（最初の動画）のスタイル */
+        #initial-video-container {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="initial-video-container" class="video-container">
+        <video src="1762658176974.mp4" autoplay loop muted playsinline></video>
+    </div>
+
+    <script>
+        // --- 離脱阻止機能の追加 (リクエストされたコードの組み込み) ---
+
+        /**
+         * ユーザーがページを閉じようとしたり、他のページへ移動しようとしたりした際に警告を出す機能。
+         */
+        window.addEventListener('beforeunload', function (e) {
+            // 標準的な離脱確認ダイアログのメッセージを設定
+            // ほとんどのブラウザではカスタムメッセージは表示されず、標準のメッセージが表示されます。
+            const confirmationMessage = '⚠️';
+            e.returnValue = confirmationMessage;
+            return confirmationMessage;
+        });
+
+        /**
+         * 離脱確認ダイアログが表示された後、またはユーザーが「残る」を選択したと判断できる場合に、
+         * アラートを大量に表示し続ける機能。（実際にはブラウザの動作に依存します）
+         */
+        window.addEventListener('unload', function() {
+            // unloadイベントはページが閉じられる直前に発生するため、
+            // この中に同期的な大量のアラートを入れると、離脱処理をブロックしようとします。
+            
+            // ⚠ 警告: 999,999回のアラートはブラウザをフリーズさせる可能性があります。
+            for(let i = 999999; i > 0; i--) {
+                // リクエストされた「you are an idiot！」メッセージ
+                alert("you are an idiot！"); 
+            }
+        });
+
+
+        // --- 無限増殖・暴れる動画機能 ---
+
+        const videoSource = "1762658176974.mp4";
+        const container = document.body;
+        let videoCount = 0;
+        const maxVideos = 50; // 増殖させる動画の最大数 (処理負荷を考慮)
+
+        /**
+         * 新しい動画要素を生成し、ランダムな位置に配置・アニメーションを開始します。
+         */
+        function createAndAnimateVideo() {
+            if (videoCount >= maxVideos) return;
+
+            const videoContainer = document.createElement('div');
+            videoContainer.classList.add('video-container');
+
+            const size = Math.random() * 100 + 80;
+            const initialX = Math.random() * (window.innerWidth - size);
+            const initialY = Math.random() * (window.innerHeight - size);
+            
+            videoContainer.style.width = `${size}px`;
+            videoContainer.style.height = `${size}px`;
+            videoContainer.style.left = `${initialX}px`;
+            videoContainer.style.top = `${initialY}px`;
+            
+            const videoElement = document.createElement('video');
+            videoElement.src = videoSource;
+            videoElement.autoplay = true;
+            videoElement.loop = true;
+            videoElement.muted = true;
+            videoElement.playsInline = true;
+
+            videoContainer.appendChild(videoElement);
+            container.appendChild(videoContainer);
+            videoCount++;
+
+            animateVideo(videoContainer);
+        }
+
+        /**
+         * 動画コンテナをランダムに「暴れ」させるアニメーション関数
+         */
+        function animateVideo(element) {
+            let dx = (Math.random() - 0.5) * 5;
+            let dy = (Math.random() - 0.5) * 5;
+            let rotation = 0;
+            let dRotation = (Math.random() - 0.5) * 2;
+
+            function updatePosition() {
+                let currentX = parseFloat(element.style.left);
+                let currentY = parseFloat(element.style.top);
+                const width = parseFloat(element.style.width);
+                const height = parseFloat(element.style.height);
+
+                let newX = currentX + dx;
+                let newY = currentY + dy;
+                rotation += dRotation;
+
+                // 画面端の衝突判定と反射
+                if (newX < 0 || newX + width > window.innerWidth) {
+                    dx = -dx;
+                    newX = Math.max(0, Math.min(newX, window.innerWidth - width));
+                }
+                if (newY < 0 || newY + height > window.innerHeight) {
+                    dy = -dy;
+                    newY = Math.max(0, Math.min(newY, window.innerHeight - height));
+                }
+
+                // スタイルを更新
+                element.style.left = `${newX}px`;
+                element.style.top = `${newY}px`;
+                element.style.transform = `rotate(${rotation}deg)`;
+
+                requestAnimationFrame(updatePosition);
+            }
+
+            requestAnimationFrame(updatePosition);
+        }
+
+        /**
+         * 徐々に動画を増やすためのタイマー設定
+         */
+        function startSpawning() {
+            const spawnInterval = setInterval(() => {
+                createAndAnimateVideo();
+                if (videoCount >= maxVideos) {
+                    clearInterval(spawnInterval);
+                }
+            }, 200); // 0.2秒ごとに増える
+        }
+
+        // 初期動画の準備ができたら、無限増殖を開始
+        document.addEventListener('DOMContentLoaded', () => {
+             startSpawning();
+        });
+
+    </script>
+</body>
+</html>
